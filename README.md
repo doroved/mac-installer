@@ -4,6 +4,11 @@
 
 Create a one-click installer for your macOS application. Save your users from cognitive load when choosing the right file for their processor type (x86_64 or arm64), ensuring installation simplicity.
 
+![Screenshot](screen.png)
+
+## Video Demo
+https://youtu.be/KyJ4SOSBmaM
+
 ## Features
 
 - Support for 2 source options for downloading application files: GitHub Releases and Direct URLs
