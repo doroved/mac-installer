@@ -3,10 +3,9 @@ import Combine
 import Foundation
 import SwiftUI
 
-// MARK: - 1. ViewModel (Управление логикой)
-class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
-{
-    // MARK: - Состояние
+// MARK: - 1. ViewModel (Logic Management)
+class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate {
+    // MARK: - State
     @Published var statusText: String = String(localized: "Initialization...")
     @Published var isInstalling: Bool = false
     @Published var isDownloadComplete: Bool = false
@@ -48,7 +47,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         checkExistingInstallation()
     }
 
-    // MARK: - Основные методы
+    // MARK: - Core Methods
 
     func checkExistingInstallation() {
         if FileManager.default.fileExists(atPath: AppConfig.installedAppPath) {
@@ -146,7 +145,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         }
     }
 
-    // MARK: - Приватные хелперы
+    // MARK: - Private Helpers
 
     private func fetchDownloadURL(url: URL) async throws -> URL {
         let (data, response) = try await self.urlSession.data(from: url)
@@ -173,7 +172,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
             from: data
         )
 
-        // Определяем паттерны для поиска в имени файла
+        // Define architecture search patterns
         let archPatterns: [String]
         switch self.currentArchitecture {
         case "aarch64":
@@ -188,11 +187,11 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
             let asset = metadata.assets.first(where: { asset in
                 let assetNameLowercased = asset.name.lowercased()
 
-                // Проверка на расширение .dmg
+                // Check for .dmg extension
                 let isDmg = assetNameLowercased.hasSuffix(".dmg")
                 if !isDmg { return false }
 
-                // 1. Проверка на архитектуру
+                // 1. Check for correct architecture
                 let hasCorrectArch = archPatterns.contains(
                     where: assetNameLowercased.contains
                 )
@@ -201,7 +200,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
             }),
             let downloadURL = URL(string: asset.browser_download_url)
         else {
-            // Вызываем новую, более точную ошибку
+            // Throw a more specific error if the asset isn't found
             throw InstallerError.downloadAssetNotFound(
                 architecture: currentArchitecture
             )
@@ -221,13 +220,13 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         }
     }
 
-    /// Выполняет внешнюю команду (например, hdiutil) и ожидает завершения.
+    /// Runs an external command (e.g., hdiutil) and awaits completion.
     private func runCommand(path: String, arguments: [String]) async throws {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: path)
         task.arguments = arguments
 
-        // Перенаправляем вывод в Pipe, чтобы избежать вывода в консоль в случае успеха
+        // Redirect output to pipe to avoid console output on success
         let pipe = Pipe()
         task.standardOutput = pipe
         task.standardError = pipe
@@ -237,7 +236,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
                 if process.terminationStatus == 0 {
                     continuation.resume(returning: ())
                 } else {
-                    // Если команда завершилась с ошибкой, читаем вывод для диагностики
+                    // Read output for diagnostics if the command failed
                     let data = pipe.fileHandleForReading.readDataToEndOfFile()
                     let output =
                         String(data: data, encoding: .utf8)?.trimmingCharacters(
@@ -264,11 +263,11 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         }
     }
 
-    /// Монтирует DMG, перемещает .app из точки монтирования в /Applications, затем размонтирует.
+    /// Mounts DMG, moves .app from mount point to /Applications, then unmounts.
     private func mountDmgAndMoveApp(at dmgURL: URL) async throws {
         let mountPoint = await AppConfig.mountPoint
 
-        // 1. Монтируем .dmg. Используем -mountpoint для явного указания точки монтирования.
+        // 1. Mount the .dmg. Use -mountpoint for explicit location.
         print("Mounting DMG: \(dmgURL.lastPathComponent) to \(mountPoint)")
 
         let attachArgs = [
@@ -280,15 +279,13 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         try await runCommand(path: "/usr/bin/hdiutil", arguments: attachArgs)
 
         defer {
-            // 3. Размонтирование в любом случае
+            // 3. Unmount in any case
             print("Unmounting \(mountPoint)...")
 
-            // hdiutil detach может быть не 0, если точка монтирования уже не существует, но это не критичная ошибка.
-            // Используем `try?` чтобы избежать выбрасывания ошибки при размонтировании.
+            // Use detached Task to ignore potential hdiutil detach errors (e.g., if mount point already gone)
             Task.detached {
-                // Размонтируем без выбрасывания ошибки, если диск уже исчез
                 let detachArgs = ["detach", mountPoint, "-force"]
-                // Используем try? runCommand, чтобы игнорировать ошибки размонтирования
+                // Use try? runCommand to ignore errors during unmounting
                 try? await self.runCommand(
                     path: "/usr/bin/hdiutil",
                     arguments: detachArgs
@@ -296,11 +293,11 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
             }
         }
 
-        // 2. Перемещаем .app
+        // 2. Move the .app
         let fm = FileManager.default
         let mountedDir = URL(fileURLWithPath: mountPoint)
 
-        // Ищем .app файл в смонтированном образе.
+        // Find the .app file in the mounted image.
         guard
             let appURL = try fm.contentsOfDirectory(
                 at: mountedDir,
@@ -311,7 +308,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
 
         let finalAppURL = await URL(fileURLWithPath: AppConfig.installedAppPath)
 
-        // Перемещаем приложение из точки монтирования в /Applications
+        // Move the application from the mount point to /Applications
         print("Moving APP: \(appURL.path) to \(finalAppURL.path)")
         try fm.copyItem(at: appURL, to: finalAppURL)
     }
@@ -324,8 +321,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         print("Installation Error: \(error.localizedDescription)")
     }
 
-    private func presentAlert(error: Error, retryHandler: @escaping () -> Void)
-    {
+    private func presentAlert(error: Error, retryHandler: @escaping () -> Void) {
         let alert = NSAlert()
         alert.messageText = String(localized: "Installation Error")
         alert.informativeText =
@@ -353,7 +349,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         totalBytesExpectedToWrite: Int64
     ) {
         if totalBytesExpectedToWrite > 0 {
-            // Прогресс загрузки
+            // Download progress update
             let installationValue =
                 Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
 
@@ -375,25 +371,25 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
             self.downloadTask = nil
         }
 
-        // Определяем имя файла
+        // Determine filename
         let suggestedFilename =
             downloadTask.response?.suggestedFilename ?? "downloaded_file.dmg"
 
-        // Новое место назначения с правильным именем файла
+        // New destination with the correct filename
         let destinationURL = self.tempDirectory.appendingPathComponent(
             suggestedFilename
         )
 
         do {
-            // Удаляем существующий файл, если он есть
+            // Remove existing file if present
             if FileManager.default.fileExists(atPath: destinationURL.path) {
                 try FileManager.default.removeItem(at: destinationURL)
             }
 
-            // Перемещаем скачанный файл в tempDirectory с правильным именем
+            // Move downloaded file to tempDirectory with the correct name
             try FileManager.default.moveItem(at: location, to: destinationURL)
 
-            // Возвращаем корректный URL
+            // Resume continuation with the correct URL
             downloadContinuation?.resume(returning: destinationURL)
         } catch {
             downloadContinuation?.resume(throwing: error)
@@ -405,25 +401,22 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         task: URLSessionTask,
         didCompleteWithError error: Error?
     ) {
-        // 1. Проверяем, была ли ошибка. Если нет, ничего не делаем, так как успешное
-        // завершение уже обработано в didFinishDownloadingTo.
+        // 1. Check if there was an error. If not, do nothing (success handled elsewhere).
         guard let error = error else {
             return
         }
 
-        // 2. Проверяем, является ли ошибка отменой пользователем.
-        // Если это отмена (NSURLErrorCancelled, код -999), мы игнорируем ее,
-        // поскольку это ожидаемое поведение при отмене установки.
+        // 2. Check if the error is a user cancellation (NSURLErrorCancelled, code -999).
         if (error as NSError).code == NSURLErrorCancelled {
             return
         }
 
-        // 3. Если это любая другая ошибка, мы "пробрасываем" ее через Continuation.
+        // 3. If any other error, propagate it through the Continuation.
         downloadContinuation?.resume(throwing: error)
     }
 }
 
-// MARK: - 2. Ошибки
+// MARK: - 2. Errors
 
 enum InstallerError: LocalizedError {
     case appNotFound, missingDownloadDestination, unsupportedArchitecture
@@ -469,7 +462,7 @@ enum InstallerError: LocalizedError {
     }
 }
 
-// MARK: - 3. AppDelegate (Управление окном и выходом)
+// MARK: - 3. AppDelegate (Window & Exit Management)
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var viewModel: InstallerViewModel?
@@ -495,7 +488,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         } else {
             viewModel.isInstalling = false
             viewModel.cancelInstallationAndCleanup()
-            
+
             return .terminateNow
         }
     }
@@ -543,15 +536,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         -> NSApplication.TerminateReply
     {
         guard let viewModel = viewModel, viewModel.isInstalling else {
-            return .terminateNow  // Разрешаем завершение
+            return .terminateNow  // Allow termination
         }
 
-        // Если установка идет, показываем алерт и возвращаем результат.
+        // If installation is in progress, show alert and return result.
         return presentExitConfirmationAlert(viewModel: viewModel)
     }
 }
 
-// MARK: - 4. SwiftUI View (Интерфейс)
+// MARK: - 4. SwiftUI View (Interface)
 
 struct ContentView: View {
     @ObservedObject public var viewModel: InstallerViewModel
@@ -578,7 +571,7 @@ struct ContentView: View {
                         HStack {
                             Text(viewModel.statusText).lineLimit(1)
 
-                            // Показываем мегабайты только при активной загрузке
+                            // Show MB count only during active download
                             if viewModel.isInstalling
                                 && !viewModel.isDownloadComplete
                                 && viewModel.totalExpectedProgress != 0
@@ -601,29 +594,29 @@ struct ContentView: View {
         .frame(width: 420)
     }
 }
-// MARK: - 5. App (Запуск)
+// MARK: - 5. App (Launch)
 
 class AppModelWrapper {
-    // Делаем его статическим, чтобы AppDelegate мог получить к нему доступ
+    // Make it static for AppDelegate access
     static var sharedViewModel: InstallerViewModel?
 }
 
 @main
 struct MacInstallerApp: App {
-    // Создаем единственный экземпляр ViewModel, управляемый жизненным циклом App
+    // Create a single ViewModel instance managed by the App lifecycle
     @ObservedObject var viewModel = InstallerViewModel()
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    // Инициализируем общую ссылку
+    // Initialize the shared reference
     init() {
-        // Устанавливаем ссылку на созданный SwiftUI экземпляр
+        // Set the reference to the created SwiftUI instance
         AppModelWrapper.sharedViewModel = viewModel
     }
 
     var body: some Scene {
         WindowGroup {
-            // Передаем созданный экземпляр в ContentView
+            // Pass the created instance to ContentView
             ContentView(viewModel: viewModel)
         }
         .windowResizability(.contentSize)
