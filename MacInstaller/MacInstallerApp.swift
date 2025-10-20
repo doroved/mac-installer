@@ -205,7 +205,6 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
                 architecture: currentArchitecture
             )
         }
-        // --------------------------------------------------------------------------
 
         return downloadURL
     }
@@ -220,7 +219,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         }
     }
 
-    /// Runs an external command (e.g., hdiutil) and awaits completion.
+    // Runs an external command (e.g., hdiutil) and awaits completion.
     private func runCommand(path: String, arguments: [String]) async throws {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: path)
@@ -263,7 +262,7 @@ class InstallerViewModel: NSObject, ObservableObject, URLSessionDownloadDelegate
         }
     }
 
-    /// Mounts DMG, moves .app from mount point to /Applications, then unmounts.
+    // Mounts DMG, moves .app from mount point to /Applications, then unmounts.
     private func mountDmgAndMoveApp(at dmgURL: URL) async throws {
         let mountPoint = await AppConfig.mountPoint
 
