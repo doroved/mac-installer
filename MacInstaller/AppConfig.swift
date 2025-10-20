@@ -1,61 +1,35 @@
 import Foundation
 
-// MARK: - Глобальная конфигурация инсталлера
+// MARK: - Global Installer Configuration
 struct AppConfig {
-    //  Укажите имя приложения обязательно с заглавной буквы
-//    static let appName = "Proxer"
-//    static let appName = "Spacedrive"
-    static let appName = "Cap"
+    // Specify the application name, must start with a capital letter
+    static let appName = "Proxer"
 
-    //  Путь установленного приложения
+    // Path to the installed application
     static let installedAppPath = "/Applications/\(appName).app"
 
-    //  Путь к точке монтирования приложения
+    // Application mount point path
     static let mountPoint = "/Volumes/\(appName)Installer"
-    
-    // Закреплять окно установщика поверх остальных окон
+
+    // Keep installer window floating on top of other windows
     static let isWindowFloating = true
 
-    //  Тип скачивания (direct/json)
-    static let downloadType = "direct"
+    // Download type (direct/github)
+    static let downloadType = "github"
 
-    //  URL для получения метаданных последнего релиза. Использовать downloadType = "json"
+    // URL to fetch latest release metadata. Use with downloadType = "github"
     static let latestReleaseURL = URL(
         string:
             "https://api.github.com/repos/doroved/proxer-releases/releases/latest"
     )!
-//    static let latestReleaseURL = URL(
-//        string:
-//            "https://api.github.com/repos/spacedriveapp/spacedrive/releases/latest"
-//    )!
-//    static let latestReleaseURL = URL(
-//        string:
-//            "https://api.github.com/repos/lzdyes/douyin-downloader/releases/latest"
-//    )!
 
-    //  Прямые ссылки на .dmg файлы приложения. Использовать downloadType = "direct"
-    //    https://hf.ru/linkd56f7 // Proxer aarch64
-    //    https://hf.ru/linkdd75e // Proxer x86_64
-//    static let arm64URL = URL(
-//        string:
-//            "https://hf.ru/linkd56f7"
-//    )!
-//        static let arm64URL = URL(
-//            string:
-//                "https://www.spacedrive.com/api/releases/desktop/stable/darwin/aarch64"
-//        )!
-    //    static let arm64URL = URL(
-    //        string:
-    //            "https://app.gitbutler.com/downloads/release/darwin/aarch64/dmg"
-    //    )!
-        static let arm64URL = URL(
-            string:
-                "https://cap.so/download/apple-silicon"
-        )!
+    // Direct links to .dmg application files. Use with downloadType = "direct"
+    static let arm64URL = URL(
+        string:
+            "https://app.myapp.com/downloads/release/darwin/aarch64/dmg"
+    )!
     static let x86_64URL = URL(
         string:
-            "https://app.gitbutler.com/downloads/release/darwin/x86_64/dmg"
+            "https://app.myapp.com/downloads/release/darwin/x86_64/dmg"
     )!
-
-    //    let downloadURL = URL(string: "https://download.scdn.co/SpotifyARM64.dmg")!
 }
