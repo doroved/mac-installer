@@ -18,7 +18,14 @@ https://youtu.be/KyJ4SOSBmaM
 
 ## Pre-build Setup
 
-Navigate to the project settings and make the following changes:
+Clone the project repository:
+
+```bash
+git clone https://github.com/doroved/mac-installer.git
+cd mac-installer
+```
+
+Navigate to the project settings (Xcode) and make the following changes:
 1. `General` → `Display Name` — replace `AppName` with your application name
 2. `Signing & Capabilities` → `Bundle Identifier` — replace `com.appname.installer` with a unique identifier for your installer
 

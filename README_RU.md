@@ -16,7 +16,14 @@ https://youtu.be/KyJ4SOSBmaM
 
 ## Подготовка перед сборкой установщика
 
-Перейдите в настройки проекта и внесите следующие изменения:
+Клонируйте репозиторий проекта:
+
+```bash
+git clone https://github.com/doroved/mac-installer.git
+cd mac-installer
+```
+
+Перейдите в настройки проекта (Xcode) и внесите следующие изменения:
 1. `General` → `Display Name` — замените `AppName` на название вашего приложения
 2. `Signing & Capabilities` → `Bundle Identifier` — замените `com.appname.installer` на уникальный идентификатор для вашего установщика
 
