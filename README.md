@@ -19,7 +19,7 @@ https://youtu.be/KyJ4SOSBmaM
 ## Pre-build Setup
 
 > [!IMPORTANT]
-> Requires Xcode 26+ because it uses the new `*.icon` icon type via Icon Composer.
+> Xcode 26+ is required if you want to use the new `*.icon` icon type via Icon Composer. Please note that this will increase the installer size from `572 KB` to `4.1 MB`. By default, the older `*.icns` icon type is used.
 
 Clone the project repository:
 
@@ -47,6 +47,10 @@ In `Assets.xcassets`, replace the icon with your application's icon.
 1. Navigate to `Product` → `Archive` to create a project archive
 2. After creating the archive, click the `Distribute App` button, select `Direct Distribution`, and click `Distribute`
 3. Wait for the process to complete and click `Export` to save the installer as a `.app` file
+
+## Installer examples
+- [ProxerInstallerAppIcon](https://github.com/doroved/mac-installer/releases/download/example/ProxerInstallerAppIcon.zip) 572 КБ
+- [ProxerInstallerIconComposer](https://github.com/doroved/mac-installer/releases/download/example/ProxerInstallerIconComposer.zip) 4.1 МБ
 
 ## Reference
 

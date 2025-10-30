@@ -17,7 +17,7 @@ https://youtu.be/KyJ4SOSBmaM
 ## Подготовка перед сборкой установщика
 
 > [!IMPORTANT]
-> Требуется Xcode 26+, т.к. используется новый тип иконок `*.icon` через Icon Composer.
+> Требуется Xcode 26+, если вы хотите использовать новый тип иконок `*.icon` через Icon Composer. Обратите внимание, что в таком случае размер установщика будет увеличен с `572 КБ` до `4.1 МБ`. По умолчанию используется старый тип иконок `*.icns`.
 
 Клонируйте репозиторий проекта:
 
@@ -45,6 +45,10 @@ cd mac-installer
 1. Перейдите в `Product` → `Archive` для создания архива проекта
 2. После создания архива нажмите кнопку `Distribute App`, выберите `Direct Distribution` и нажмите `Distribute`
 3. Дождитесь завершения процесса и нажмите `Export` для сохранения установщика в виде файла `.app`
+
+## Примеры установщика
+- [ProxerInstallerAppIcon](https://github.com/doroved/mac-installer/releases/download/example/ProxerInstallerAppIcon.zip) 572 КБ
+- [ProxerInstallerIconComposer](https://github.com/doroved/mac-installer/releases/download/example/ProxerInstallerIconComposer.zip) 4.1 МБ
 
 ## Референс
 
