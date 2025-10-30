@@ -18,6 +18,9 @@ https://youtu.be/KyJ4SOSBmaM
 
 ## Pre-build Setup
 
+> [!IMPORTANT]
+> Requires Xcode 26+ because it uses the new `*.icon` icon type via Icon Composer.
+
 Clone the project repository:
 
 ```bash
